@@ -1,6 +1,20 @@
 <template>
-  <div class="char" :class="{ mobile: this.$parent.windowWidth < 768 }">
-    <div class="frame" :class="frameClass">
+  <div
+    class="char"
+    :class="{
+      mobile: $parent.windowWidth < 768,
+      error: !passValidation
+    }"
+  >
+    <div
+      class="frame"
+      :class="{
+        bgBlue: char.star === 1,
+        bgGold: char.star === 2,
+        bgRainbow: char.star === 3,
+        grayscale: !char.inpool
+      }"
+    >
       <img :src="charImgPath" :alt="char.name" />
     </div>
     <div class="info">
@@ -10,37 +24,58 @@
     </div>
     <div class="action">
       <label class="in-pool">
-        <input type="checkbox" v-model="char.inpool" />卡池啟用
+        <input type="checkbox" v-model="char.inpool" />
+        卡池啟用
       </label>
       <label class="rate-up">
-        <input type="checkbox" v-model="char.rateup" />機率提升
+        <input type="checkbox" :checked="char.rateup" @change="showRate" />
+        機率提升
       </label>
       <label class="rate" v-show="char.rateup">
-        <input type="text" v-model.number="char.rate" />%
+        <input type="text" v-model="char.rate" />%
       </label>
     </div>
   </div>
 </template>
 
 <script>
+import { mapActions } from "vuex";
+
 export default {
   name: "Character",
-  props: {
-    char: Object
-  },
+  props: ["char"],
   data() {
     return {
-      frameClass: {
-        bgBlue: this.char.star === 1,
-        bgGold: this.char.star === 2,
-        bgRainbow: this.char.star === 3,
-        grayscale: !this.char.inpool
-      }
+      passValidation: true
     };
   },
   computed: {
     charImgPath() {
       return require(`@/assets/images/card/${this.char.name}.png`);
+    }
+  },
+  methods: {
+    ...mapActions(["checkRate", "pushChangedData"]),
+    showRate(e) {
+      this.char.rateup = e.target.checked;
+      if (!this.char.rateup) this.char.rate = 0;
+    }
+  },
+  watch: {
+    char: {
+      handler(newData) {
+        this.passValidation = this.char.rateup
+          ? this.char.inpool && !isNaN(this.char.rate)
+          : true;
+
+        if (this.passValidation) {
+          this.char.rate = Number(this.char.rate);
+          this.pushChangedData(newData);
+        }
+
+        this.checkRate(this.passValidation);
+      },
+      deep: true
     }
   }
 };
@@ -109,9 +144,11 @@ export default {
   & > .action {
     width: 90px;
     align-items: flex-end;
-    & > label.rate input {
+
+    & > label.rate > input {
+      border-radius: 10px;
       text-align: center;
-      width: 40px;
+      width: 50px;
     }
   }
 }

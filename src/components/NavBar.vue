@@ -1,5 +1,5 @@
 <template>
-  <div id="nav" :class="{ mobile: this.$parent.windowWidth < 768 }">
+  <div id="nav" :class="{ mobile: this.windowWidth < 768 }">
     <div id="topBar">
       <div class="left">
         <div class="trigger" @click="activeMenu">
@@ -15,16 +15,22 @@
     <div
       id="overlayout"
       :class="{ active: menu.active }"
-      @click.self="activeMenu"
+      @click.stop="activeMenu"
       @touchmove.prevent
     >
       <ul id="menu">
-        <li class="trigger" @click="activeMenu">
+        <li class="trigger" @click.stop="activeMenu">
           <i class="fas fa-times"></i>
         </li>
-        <li v-for="(item, i) in menu.items" :key="i" @click="activeMenu">
-          <router-link :to="item.path">{{ item.title }}</router-link>
-        </li>
+        <router-link
+          tag="li"
+          v-for="(item, i) in menu.items"
+          :key="i"
+          :to="item.to"
+          @click.stop="activeMenu"
+        >
+          <span>{{ item.title }}</span>
+        </router-link>
       </ul>
     </div>
     <div id="navOffset"></div>
@@ -36,6 +42,7 @@ export default {
   name: "NavBar",
   data() {
     return {
+      windowWidth: 0,
       menu: {
         active: false,
         items: []
@@ -48,27 +55,23 @@ export default {
     }
   },
   methods: {
+    handleResize() {
+      this.windowWidth = window.innerWidth;
+    },
     setMenu() {
+      this.menu.items = [];
       this.$router.options.routes.forEach(route => {
         if (route.hasOwnProperty("children")) {
-          this.menu.items.push({
-            path: "#",
-            title: route.meta.title,
-            isChild: false
-          });
-
           route.children.forEach(child => {
             this.menu.items.push({
-              path: route.path + "/" + child.path,
-              title: child.meta.title,
-              isChild: true
+              to: { name: child.name },
+              title: child.meta.title
             });
           });
         } else {
           this.menu.items.push({
-            path: route.path,
-            title: route.meta.title,
-            isChild: false
+            to: { name: route.name },
+            title: route.meta.title
           });
         }
       });
@@ -89,6 +92,9 @@ export default {
     }
   },
   created() {
+    window.addEventListener("resize", this.handleResize);
+    this.handleResize();
+
     document.addEventListener("keydown", this.closeMenuByEsc);
     this.setMenu();
   }
@@ -99,7 +105,7 @@ export default {
 $bg: #87ceeb;
 $bg-hover: #23a2c8;
 $bg-overlayout: #333333;
-$topbar-h: 50px;
+$h-topbar: 50px;
 
 @mixin fixed {
   left: 0;
@@ -126,10 +132,10 @@ $topbar-h: 50px;
       }
     }
 
-    & button,
-    & input[type="button"],
-    & input[type="reset"],
-    & input[type="submit"] {
+    button,
+    input[type="button"],
+    input[type="reset"],
+    input[type="submit"] {
       font-size: 16px;
     }
   }
@@ -139,7 +145,7 @@ $topbar-h: 50px;
     align-items: center;
     background: $bg;
     display: flex;
-    height: $topbar-h;
+    height: $h-topbar;
     width: 100%;
     z-index: 9999;
 
@@ -186,13 +192,14 @@ $topbar-h: 50px;
       height: 100%;
       list-style: none;
       overflow: hidden;
-      transition: all 0.2s linear 0.1s;
+      transition: all 0.2s linear;
       width: 300px;
 
       & > li {
         box-sizing: border-box;
+        cursor: pointer;
         padding: 10px;
-        height: $topbar-h;
+        height: $h-topbar;
 
         &:hover,
         &:focus,
@@ -204,43 +211,31 @@ $topbar-h: 50px;
           text-align: right;
         }
 
-        & > a {
-          text-decoration: none;
+        &.router-link-exact-active {
+          background: $bg-hover;
 
-          &:link,
-          &:visited,
-          &:active {
-            color: white;
-          }
-
-          &.router-link-exact-active {
+          & > span {
             color: #2c3e50;
           }
+        }
+
+        & > span {
+          color: white;
         }
       }
     }
   }
 
   & > #navOffset {
-    height: $topbar-h;
+    height: $h-topbar;
   }
 
-  & button,
-  & input[type="button"],
-  & input[type="reset"],
-  & input[type="submit"] {
+  button,
+  input[type="button"],
+  input[type="reset"],
+  input[type="submit"] {
     font-size: 20px;
     font-weight: bold;
-  }
-}
-
-.trigger {
-  cursor: pointer;
-
-  & > i:hover,
-  & > i:focus,
-  & > i:active {
-    color: black;
   }
 }
 </style>

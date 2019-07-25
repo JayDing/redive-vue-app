@@ -1,7 +1,8 @@
 import Vue from "vue";
 import Router from "vue-router";
-import CharList from "./views/CharList.vue";
-import Character from "./components/Character.vue";
+import Pool from "./views/Pool.vue";
+import PoolSetting from "./components/PoolSetting.vue";
+import CharList from "./components/CharList.vue";
 import AddChar from "./views/AddChar.vue";
 
 Vue.use(Router);
@@ -12,26 +13,30 @@ const router = new Router({
   routes: [
     {
       path: "/pool",
-      name: "charList",
-      component: CharList,
-      meta: { title: "卡池設定" },
+      component: Pool,
       children: [
+        {
+          path: "",
+          name: "pool",
+          component: PoolSetting,
+          meta: { title: "卡池設定" }
+        },
         {
           path: "normal",
           name: "normal",
-          component: Character,
+          component: CharList,
           meta: { title: "白金轉蛋" }
         },
         {
           path: "featured",
           name: "featured",
-          component: Character,
+          component: CharList,
           meta: { title: "精選轉蛋" }
         },
         {
           path: "must3Star",
           name: "must3Star",
-          component: Character,
+          component: CharList,
           meta: { title: "3星必中" }
         }
       ]

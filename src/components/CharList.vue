@@ -45,7 +45,7 @@ export default {
     ...mapActions(["clearChangedData"]),
     async fetchData() {
       const poolName = this.$route.name;
-      const url = `redive-gotcha.herokuapp.com/api/charList/${poolName}`;
+      const url = `https://redive-gotcha.herokuapp.com/api/charList/${poolName}`;
       // const url = `http://localhost:5000/api/charList/${poolName}`;
 
       this.loading = !this.loading;
@@ -70,7 +70,7 @@ export default {
     },
     async updateData() {
       const poolName = this.$route.name;
-      const url = `redive-gotcha.herokuapp.com/api/charList/update/${poolName}`;
+      const url = `https://redive-gotcha.herokuapp.com/api/charList/update/${poolName}`;
       // const url = `http://localhost:5000/api/charList/update/${poolName}`;
 
       this.error = [];
@@ -96,7 +96,7 @@ export default {
               setTimeout(() => {
                 this.updated = !this.updated;
                 this.fetchData();
-              }, 1500);
+              }, 2500);
             } else if (res.redirected) {
               window.location = res.headers.get("Location");
             } else {

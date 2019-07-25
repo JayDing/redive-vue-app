@@ -1,5 +1,5 @@
 <template>
-  <div id="nav" :class="{ mobile: this.windowWidth < 768 }">
+  <div id="nav" :class="{ mobile: windowWidth < 768 }">
     <div id="topBar">
       <div class="left">
         <div class="trigger" @click="activeMenu">

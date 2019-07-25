@@ -23,6 +23,7 @@
 </template>
 
 <script>
+// TODO: 加入角色名字搜尋
 import { mapActions } from "vuex";
 import NavBar from "@/components/NavBar.vue";
 import Character from "@/components/Character.vue";
@@ -135,10 +136,26 @@ export default {
   width: 100%;
 
   &.mobile {
+    & > #navBar {
+      button.update {
+        padding: 5px 5px;
+      }
+    }
     & > .charList {
       align-items: center;
       display: flex;
       flex-direction: column;
+    }
+  }
+
+  & > #nav {
+    button.update {
+      background: #5cb85c !important;
+      border: 1px solid #4cae4c !important;
+      border-radius: 10px !important;
+      color: white !important;
+      cursor: pointer !important;
+      padding: 5px 5px;
     }
   }
 

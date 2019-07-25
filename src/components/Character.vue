@@ -2,7 +2,7 @@
   <div
     class="char"
     :class="{
-      mobile: $parent.windowWidth < 768,
+      mobile: windowWidth < 768,
       error: !passValidation
     }"
   >
@@ -46,6 +46,7 @@ export default {
   props: ["char"],
   data() {
     return {
+      windowWidth: 0,
       passValidation: true
     };
   },
@@ -56,10 +57,17 @@ export default {
   },
   methods: {
     ...mapActions(["checkRate", "pushChangedData"]),
+    handleResize() {
+      this.windowWidth = window.innerWidth;
+    },
     showRate(e) {
       this.char.rateup = e.target.checked;
       if (!this.char.rateup) this.char.rate = 0;
     }
+  },
+  created() {
+    window.addEventListener("resize", this.handleResize);
+    this.handleResize();
   },
   watch: {
     char: {

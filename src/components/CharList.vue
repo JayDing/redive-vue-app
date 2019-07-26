@@ -28,6 +28,8 @@ import { mapActions } from "vuex";
 import NavBar from "@/components/NavBar.vue";
 import Character from "@/components/Character.vue";
 
+const domain = process.env.VUE_APP_DOMAIN;
+
 export default {
   name: "charList",
   components: {
@@ -46,8 +48,7 @@ export default {
     ...mapActions(["clearChangedData"]),
     async fetchData() {
       const poolName = this.$route.name;
-      const url = `https://redive-gotcha.herokuapp.com/api/charList/${poolName}`;
-      // const url = `http://localhost:5000/api/charList/${poolName}`;
+      const url = `${domain}/api/charList/${poolName}`;
 
       this.loading = !this.loading;
       this.error = [];
@@ -71,8 +72,7 @@ export default {
     },
     async updateData() {
       const poolName = this.$route.name;
-      const url = `https://redive-gotcha.herokuapp.com/api/charList/update/${poolName}`;
-      // const url = `http://localhost:5000/api/charList/update/${poolName}`;
+      const url = `${domain}/api/charList/update/${poolName}`;
 
       this.error = [];
       this.loading = !this.loading;

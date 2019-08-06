@@ -2,33 +2,31 @@
   <div id="board">
     <navBar>
       <template v-slot:right>
-        <button class="update" @click="updateData">
+        <button class="update" @click="updateChar">
           更新
         </button>
       </template>
     </navBar>
-    <div class="loading" v-if="loading">
-      <h2>Loading...</h2>
+    <div class="charList" v-if="status === 'success'">
+      <character v-for="char in charList" :key="char.id" :char="char" />
     </div>
-    <div class="updated" v-if="updated">
+    <div class="status" v-else-if="status === 'updated'">
       <h2>Successfully Updated!</h2>
     </div>
-    <div class="error" v-if="error.length > 0">
-      <h2 v-for="(msg, i) in error" :key="i">{{ msg }}</h2>
+    <div class="status error" v-else-if="status === 'error'">
+      <h2>Error!</h2>
     </div>
-    <div class="charList" v-if="charList && !loading && !updated">
-      <character v-for="char in charList" :key="char.id" :char="char" />
+    <div class="status" v-else>
+      <h2>Loading...</h2>
     </div>
   </div>
 </template>
 
 <script>
 // TODO: 加入角色名字搜尋
-import { mapActions } from "vuex";
+import { mapState, mapActions } from "vuex";
 import NavBar from "@/components/NavBar.vue";
 import Character from "@/components/Character.vue";
-
-const domain = process.env.VUE_APP_DOMAIN;
 
 export default {
   name: "charList",
@@ -36,91 +34,26 @@ export default {
     NavBar,
     Character
   },
-  data() {
-    return {
-      loading: false,
-      updated: false,
-      error: [],
-      charList: null
-    };
+  computed: {
+    ...mapState(["status", "charList"])
   },
   methods: {
-    ...mapActions(["clearChangedData"]),
-    async fetchData() {
-      const poolName = this.$route.name;
-      const url = `${domain}/api/charList/${poolName}`;
-
-      this.loading = !this.loading;
-      this.error = [];
-      this.charList = null;
-
-      try {
-        let res = await fetch(url);
-
-        if (res.ok) {
-          this.charList = await res.json();
-        } else if (res.redirected) {
-          window.location = res.headers.get("Location");
-        } else {
-          this.error.push("未知錯誤.");
-        }
-      } catch (err) {
-        this.error.push(err);
-      }
-
-      this.loading = !this.loading;
+    ...mapActions(["fetchData", "updateData"]),
+    async fetchChar() {
+      const apiName = `charList/${this.$route.name}`;
+      await this.fetchData(apiName);
     },
-    async updateData() {
-      const poolName = this.$route.name;
-      const url = `${domain}/api/charList/update/${poolName}`;
-
-      this.error = [];
-      this.loading = !this.loading;
-
-      if (this.$store.state.passValidation) {
-        if (this.$store.state.changedData.length > 0) {
-          try {
-            let res = await fetch(url, {
-              method: "POST",
-              body: JSON.stringify(this.$store.state.changedData),
-              headers: new Headers({
-                "Content-Type": "application/json"
-              })
-            });
-
-            this.loading = !this.loading;
-
-            if (res.ok && (await res.json())) {
-              this.updated = !this.updated;
-              this.clearChangedData();
-
-              setTimeout(() => {
-                this.updated = !this.updated;
-                this.fetchData();
-              }, 2500);
-            } else if (res.redirected) {
-              window.location = res.headers.get("Location");
-            } else {
-              this.error.push("未知錯誤.");
-            }
-          } catch (err) {
-            this.error.push(err);
-          }
-        } else {
-          this.loading = !this.loading;
-          this.error.push("無資料修改.");
-        }
-      } else {
-        this.loading = !this.loading;
-        this.error.push("表單驗證失敗.");
-      }
+    async updateChar() {
+      const apiName = `charList/update/${this.$route.name}`;
+      const callback = `charList/${this.$route.name}`;
+      await this.updateData({ apiName, callback });
     }
   },
   async created() {
-    await this.fetchData();
+    this.fetchChar();
   },
   watch: {
-    $route: "fetchData"
+    $route: "fetchChar"
   }
 };
 </script>
@@ -150,12 +83,9 @@ export default {
 
   & > #nav {
     button.update {
-      background: #5cb85c !important;
-      border: 1px solid #4cae4c !important;
-      border-radius: 10px !important;
-      color: white !important;
-      cursor: pointer !important;
-      padding: 5px 5px;
+      background: #5cb85c;
+      border-color: #4cae4c;
+      color: white;
     }
   }
 

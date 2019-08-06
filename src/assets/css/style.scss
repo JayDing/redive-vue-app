@@ -6,7 +6,7 @@ body {
     margin: 0;
     padding: 0;
     
-    div.error {
+    div.status.error {
         color: red;
     }
 
@@ -20,9 +20,16 @@ body {
         }
     }
 
-    *.mobile div.loading,
-    *.mobile div.updated,
-    *.mobile div.error {
+    *.mobile div.status {
         font-size: 20px;
     }
+}
+
+button {
+    border: 1px solid;
+    border-radius: 5px;
+    cursor: pointer;
+    padding: 5px 5px;
+    font-family: "Microsoft JhengHei", Arial, Helvetica, sans-serif;
+
 }

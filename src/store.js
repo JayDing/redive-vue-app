@@ -3,12 +3,27 @@ import Vuex from "vuex";
 
 Vue.use(Vuex);
 
+const domain = process.env.VUE_APP_DOMAIN;
+
 export default new Vuex.Store({
   state: {
-    passValidation: true,
-    changedData: []
+    status: "loading",
+    charList: [],
+    passValidation: true
   },
   mutations: {
+    status(state, status) {
+      state.status = status;
+    },
+    fetchData(state, data) {
+      switch (data.type) {
+        case "charList":
+          state.charList = data.rows;
+          break;
+        default:
+          break;
+      }
+    },
     checkRate(state, passed) {
       state.passValidation = passed;
     },
@@ -26,14 +41,58 @@ export default new Vuex.Store({
     }
   },
   actions: {
-    checkRate(context, passed) {
-      context.commit("checkRate", passed);
+    async fetchData({ commit }, apiName) {
+      const apiUrl = `${domain}/api/${apiName}`;
+      const dataType = apiName.split("/")[0];
+
+      commit("status", "loading");
+
+      try {
+        const res = await fetch(apiUrl);
+
+        if (res.ok) {
+          commit(`fetchData`, { type: dataType, rows: await res.json() });
+          commit("status", "success");
+        } else {
+          commit("status", "error");
+          console.log(res);
+        }
+      } catch (err) {
+        commit("status", "error");
+        console.error(err);
+      }
     },
-    pushChangedData(context, newData) {
-      context.commit("pushChangedData", newData);
+    async updateData({ dispatch, commit }, { apiName, callback }) {
+      const apiUrl = `${domain}/api/${apiName}`;
+      const callbackUrl = `${domain}/api/${callback}`;
+
+      commit("status", "loading");
+
+      try {
+        let res = await fetch(apiUrl, {
+          method: "POST",
+          body: JSON.stringify(this.$store.state.changedData),
+          headers: new Headers({
+            "Content-Type": "application/json"
+          })
+        });
+
+        if (res.ok && (await res.json())) {
+          commit("status", "updated");
+          setTimeout(() => {
+            dispatch("fetchData", callbackUrl);
+          }, 2000);
+        } else {
+          commit("status", "error");
+          console.log(res);
+        }
+      } catch (err) {
+        commit("status", "error");
+        console.error(err);
+      }
     },
-    clearChangedData(context) {
-      context.commit("clearChangedData");
+    checkRate({ commit }, passed) {
+      commit("checkRate", passed);
     }
   }
 });

@@ -2,7 +2,7 @@
   <div id="poolSetting">
     <navBar>
       <template v-slot:right>
-        <input class="update" type="button" value="設定" @click="updateData" />
+        <button class="update" @click="updateData">設定</button>
       </template>
     </navBar>
     Pool Setting

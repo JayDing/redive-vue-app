@@ -19,8 +19,8 @@
     </div>
     <div class="info">
       <strong class="name">{{ char.name }}</strong>
-      <p>機率 {{ char.prob.normal }} %</p>
-      <p>(第十抽 {{ char.prob.last }} %)</p>
+      <p>機率 {{ char.prob_normal }} %</p>
+      <p>(第十抽 {{ char.prob_last }} %)</p>
     </div>
     <div class="action">
       <label class="in-pool">
@@ -28,11 +28,11 @@
         卡池啟用
       </label>
       <label class="rate-up">
-        <input type="checkbox" :checked="char.rateup" @change="showRate" />
+        <input type="checkbox" :checked="char.rateup" @change="showRateUp" />
         機率提升
       </label>
       <label class="rate" v-show="char.rateup">
-        <input type="text" v-model="char.rate" />%
+        <input type="text" :value="newProb" @keyup="changeRate" />%
       </label>
     </div>
   </div>
@@ -47,6 +47,7 @@ export default {
   data() {
     return {
       windowWidth: 0,
+      newProb: 0,
       passValidation: true
     };
   },
@@ -56,35 +57,21 @@ export default {
     }
   },
   methods: {
-    ...mapActions(["checkRate", "pushChangedData"]),
+    ...mapActions(["checkRate"]),
+    showRateUp(e) {
+      this.char.rateup = e.target.checked;
+      this.newProb = this.char.prob_normal;
+    },
+    changeRate(e) {
+
+    },
     handleResize() {
       this.windowWidth = window.innerWidth;
-    },
-    showRate(e) {
-      this.char.rateup = e.target.checked;
-      if (!this.char.rateup) this.char.rate = 0;
     }
   },
   created() {
     window.addEventListener("resize", this.handleResize);
     this.handleResize();
-  },
-  watch: {
-    char: {
-      handler(newData) {
-        this.passValidation = this.char.rateup
-          ? this.char.inpool && !isNaN(this.char.rate)
-          : true;
-
-        if (this.passValidation) {
-          this.char.rate = Number(this.char.rate);
-          this.pushChangedData(newData);
-        }
-
-        this.checkRate(this.passValidation);
-      },
-      deep: true
-    }
   }
 };
 </script>

@@ -70,11 +70,12 @@ export default {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-around;
-  margin-bottom: 30px;
   width: 768px;
 
   &.mobile {
-    width: 100%;
+    flex-direction: column;
+    justify-content: center;
+    width: 80%;
   }
 
   & > .name {

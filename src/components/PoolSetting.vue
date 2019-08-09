@@ -5,7 +5,7 @@
         <button class="update" @click="updatePools">設定</button>
       </template>
     </navBar>
-    <div class="pools" v-if="status === 'success'">
+    <div id="pools" v-if="status === 'success'">
       <poolInfo v-for="(pool, key) in poolList" :key="key" :pool="pool" />
     </div>
     <div class="status" v-else-if="status === 'updated'">
@@ -60,7 +60,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-#poolSetting {
+#pools {
   align-items: center;
   display: flex;
   flex-direction: column;

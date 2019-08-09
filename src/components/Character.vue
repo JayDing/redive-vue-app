@@ -12,7 +12,7 @@
         bgBlue: char.star === 1,
         bgGold: char.star === 2,
         bgRainbow: char.star === 3,
-        grayscale: !char.inpool
+        grayscale: !inpool
       }"
     >
       <img :src="charImgPath" :alt="char.name" />
@@ -24,15 +24,15 @@
     </div>
     <div class="action">
       <label class="in-pool">
-        <input type="checkbox" v-model="char.inpool" />
+        <input type="checkbox" v-model="inpool" />
         卡池啟用
       </label>
       <label class="rate-up">
-        <input type="checkbox" :checked="char.rateup" @change="showRateUp" />
+        <input type="checkbox" v-model="rateup" />
         機率提升
       </label>
-      <label class="rate" v-show="char.rateup">
-        <input type="text" :value="newProb" @keyup="changeRate" />%
+      <label class="rate" v-show="rateup">
+        <input type="text" v-model="prob" />%
       </label>
     </div>
   </div>
@@ -47,7 +47,9 @@ export default {
   data() {
     return {
       windowWidth: 0,
-      newProb: 0,
+      inpool: this.char.inpool,
+      rateup: this.char.rateup,
+      prob: this.char.prob_normal,
       passValidation: true
     };
   },
@@ -57,13 +59,29 @@ export default {
     }
   },
   methods: {
-    ...mapActions(["checkRate"]),
-    showRateUp(e) {
-      this.char.rateup = e.target.checked;
-      this.newProb = this.char.prob_normal;
-    },
-    changeRate(e) {
+    ...mapActions(["validate", "calcProb"]),
+    checkProb() {
+      this.passValidation = this.rateup
+        ? this.inpool && !isNaN(this.prob) && this.prob <= this.char.base_normal
+        : true;
 
+      this.validate({
+        id: this._uid,
+        passed: this.passValidation
+      });
+
+      if (this.passValidation) {
+        this.calcProb({
+          id: this.char.id,
+          inpool: this.inpool,
+          rateup: this.rateup,
+          prob: Number(this.prob)
+        });
+      }
+    },
+    showRateup() {
+      this.prob = this.char.prob_normal;
+      this.checkProb();
     },
     handleResize() {
       this.windowWidth = window.innerWidth;
@@ -72,6 +90,12 @@ export default {
   created() {
     window.addEventListener("resize", this.handleResize);
     this.handleResize();
+    this.checkProb();
+  },
+  watch: {
+    inpool: "checkProb",
+    rateup: "showRateup",
+    prob: "checkProb"
   }
 };
 </script>

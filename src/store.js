@@ -8,91 +8,135 @@ const domain = process.env.VUE_APP_DOMAIN;
 export default new Vuex.Store({
   state: {
     status: "loading",
+    validationFailed: [],
     charList: [],
-    passValidation: true
+    pools: []
   },
   mutations: {
     status(state, status) {
       state.status = status;
     },
-    fetchData(state, data) {
-      switch (data.type) {
-        case "charList":
-          state.charList = data.rows;
-          break;
-        default:
-          break;
-      }
-    },
-    checkRate(state, passed) {
-      state.passValidation = passed;
-    },
-    pushChangedData(state, newData) {
-      const arrIndex = state.changedData.findIndex(
-        data => data.rate_id === newData.rate_id
-      );
-      if (arrIndex === -1) {
-        state.changedData.push(newData);
-      }
-      console.log(state.changedData);
-    },
-    clearChangedData(state) {
-      state.changedData = [];
-    }
-  },
-  actions: {
-    async fetchData({ commit }, apiName) {
+    async fetchData(state, apiName) {
       const apiUrl = `${domain}/api/${apiName}`;
       const dataType = apiName.split("/")[0];
 
-      commit("status", "loading");
+      state.status = "loading";
 
       try {
         const res = await fetch(apiUrl);
 
         if (res.ok) {
-          commit(`fetchData`, { type: dataType, rows: await res.json() });
-          commit("status", "success");
+          state[dataType] = await res.json();
+          state.status = "success";
         } else {
-          commit("status", "error");
+          state.status = "error";
           console.log(res);
         }
       } catch (err) {
-        commit("status", "error");
+        state.status = "error";
         console.error(err);
       }
     },
-    async updateData({ dispatch, commit }, { apiName, callback }) {
-      const apiUrl = `${domain}/api/${apiName}`;
-      const callbackUrl = `${domain}/api/${callback}`;
+    async updateData(state, apiName) {
+      if (state.validationFailed.length === 0) {
+        const apiUrl = `${domain}/api/${apiName}`;
+        const dataType = apiName.split("/")[0];
 
-      commit("status", "loading");
+        state.status = "loading";
 
-      try {
-        let res = await fetch(apiUrl, {
-          method: "POST",
-          body: JSON.stringify(this.$store.state.changedData),
-          headers: new Headers({
-            "Content-Type": "application/json"
-          })
-        });
+        try {
+          let res = await fetch(apiUrl, {
+            method: "POST",
+            body: JSON.stringify(state[dataType]),
+            headers: new Headers({
+              "Content-Type": "application/json"
+            })
+          });
 
-        if (res.ok && (await res.json())) {
-          commit("status", "updated");
-          setTimeout(() => {
-            dispatch("fetchData", callbackUrl);
-          }, 2000);
-        } else {
-          commit("status", "error");
-          console.log(res);
+          if (res.ok && (await res.json())) {
+            state.status = "updated";
+            setTimeout(() => {
+              state.status = "success";
+            }, 2000);
+          } else {
+            state.status = "error";
+            console.error(res);
+          }
+        } catch (err) {
+          state.status = "error";
+          console.error(err);
         }
-      } catch (err) {
-        commit("status", "error");
-        console.error(err);
       }
     },
-    checkRate({ commit }, passed) {
-      commit("checkRate", passed);
+    validate({ validationFailed }, component) {
+      const idx = validationFailed.findIndex(c => c.id === component.id);
+      if (idx === -1 && !component.passed) validationFailed.push(component);
+      if (idx !== -1 && component.passed) validationFailed.splice(idx, 1);
+    },
+    pushPoolData({ pools }, newData) {
+      newData.forEach(info => {
+        const idx = pools.findIndex(pi => pi.pi_id === info.pi_id);
+
+        if (idx !== -1) {
+          pools[idx].normal = info.normal;
+          pools[idx].last = info.last;
+        }
+      });
+    },
+    calcProb({ charList }, newData) {
+      const idx = charList.findIndex(char => char.id === newData.id);
+      if (idx !== -1) {
+        charList[idx].inpool = newData.inpool;
+        charList[idx].rateup = newData.rateup;
+        charList[idx].prob_normal = newData.prob;
+        charList[idx].prob_last = newData.prob;
+      }
+
+      charList.map((char, i, charList) => {
+        if (char.rateup) return char;
+
+        let cPool = charList.filter(
+          c => c.inpool == true && c.star == char.star
+        );
+        if (cPool.indexOf(char) === -1) {
+          char.prob_normal = 0;
+          char.prob_last = 0;
+          return char;
+        }
+
+        let cUpPool = cPool.filter(c => c.rateup === true);
+        let cUp = cUpPool.reduce((init, char) => init + char.prob_normal, 0);
+        let pn = char.base_normal - cUp;
+        let pl = char.base_last - cUp;
+
+        char.prob_normal =
+          pn > 0
+            ? Math.round((pn / (cPool.length - cUpPool.length)) * 10000) / 10000
+            : 0;
+        char.prob_last =
+          pl > 0
+            ? Math.round((pl / (cPool.length - cUpPool.length)) * 10000) / 10000
+            : 0;
+
+        return char;
+      });
+    }
+  },
+  actions: {
+    fetchData({ commit }, apiName) {
+      commit("fetchData", apiName);
+    },
+    updateData({ commit }, apiName) {
+      commit("updateData", apiName);
+    },
+    validate({ commit }, component) {
+      commit("validate", component);
+    },
+    pushPoolData({ commit }, newData) {
+      commit("pushPoolData", newData);
+    },
+    calcProb({ commit }, newData) {
+      commit("calcProb", newData);
     }
   }
 });

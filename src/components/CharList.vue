@@ -8,7 +8,7 @@
       </template>
     </navBar>
     <div class="charList" v-if="status === 'success'">
-      <character v-for="char in charList" :key="char.id" :char="char" />
+      <Character v-for="char in charList" :key="char.id" :char="char" />
     </div>
     <div class="status" v-else-if="status === 'updated'">
       <h2>Successfully Updated!</h2>
@@ -39,17 +39,16 @@ export default {
   },
   methods: {
     ...mapActions(["fetchData", "updateData"]),
-    async fetchChar() {
+    fetchChar() {
       const apiName = `charList/${this.$route.name}`;
-      await this.fetchData(apiName);
+      this.fetchData(apiName);
     },
-    async updateChar() {
+    updateChar() {
       const apiName = `charList/update/${this.$route.name}`;
-      const callback = `charList/${this.$route.name}`;
-      await this.updateData({ apiName, callback });
+      this.updateData(apiName);
     }
   },
-  async created() {
+  created() {
     this.fetchChar();
   },
   watch: {
@@ -61,7 +60,6 @@ export default {
 <style lang="scss" scoped>
 #board {
   align-items: center;
-  justify-content: center;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -69,23 +67,10 @@ export default {
   width: 100%;
 
   &.mobile {
-    & > #navBar {
-      button.update {
-        padding: 5px 5px;
-      }
-    }
     & > .charList {
       align-items: center;
       display: flex;
       flex-direction: column;
-    }
-  }
-
-  & > #nav {
-    button.update {
-      background: #5cb85c;
-      border-color: #4cae4c;
-      color: white;
     }
   }
 

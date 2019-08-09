@@ -6,10 +6,10 @@ body {
     margin: 0;
     padding: 0;
     
-    div.status.error {
+    .error {
         color: red;
     }
-
+    
     .trigger {
         cursor: pointer;
     
@@ -26,10 +26,15 @@ body {
 }
 
 button {
-    border: 1px solid;
+    border: 1px solid gray;
     border-radius: 5px;
     cursor: pointer;
     padding: 5px 5px;
     font-family: "Microsoft JhengHei", Arial, Helvetica, sans-serif;
+}
 
+button.update {
+    background: #5cb85c;
+    border-color: #4cae4c;
+    color: white;
 }

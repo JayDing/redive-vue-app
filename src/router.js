@@ -37,7 +37,7 @@ const router = new Router({
           path: "must3Star",
           name: "must3Star",
           component: CharList,
-          meta: { title: "3星必中" }
+          meta: { title: "三星必中" }
         }
       ]
     },

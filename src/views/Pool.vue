@@ -1,26 +1,12 @@
 <template>
   <div id="main">
-    <router-view :class="{ mobile: this.windowWidth < 768 }" />
+    <router-view />
   </div>
 </template>
 
 <script>
 export default {
-  name: "Pool",
-  data() {
-    return {
-      windowWidth: 0
-    };
-  },
-  methods: {
-    handleResize() {
-      this.windowWidth = window.innerWidth;
-    }
-  },
-  created() {
-    window.addEventListener("resize", this.handleResize);
-    this.handleResize();
-  }
+  name: "Pool"
 };
 </script>
 
